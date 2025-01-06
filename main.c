@@ -1,17 +1,21 @@
 #include "avl.h"
 #include "trie.h"
+#include "jogo.h"
 
 int main()
 {
-    No_AVL *raiz = NULL;
+    char** tab = ler_tabuleiro("tabuleiro.txt");
 
-    raiz = avl_inserir_no(raiz, "OLA");
-    raiz = avl_inserir_no(raiz, "BOLA");
-    raiz = avl_inserir_no(raiz, "ILHA");
+    for (size_t i = 0; i < 10; i++) {
+        for (size_t j = 0; j < 10; j++) {
+            printf("%c ", tab[i][j]);
+        }
+        printf("\n");
+    }
 
-    raiz = avl_remover_no(raiz, "OLA"); 
+    No_TRIE* trie = trie_criar_no();
 
-    avl_imprimir_em_ordem(raiz);
+    int s = ler_palavras("palavras.txt", trie);
 
     return 0;
 }
