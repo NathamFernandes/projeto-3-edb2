@@ -95,17 +95,17 @@ static char *palavra_invertida(const char *palavra)
 }
 
 /**
- * @brief Busca palavras horizontalmente em um vetor de caracteres.
+ * @brief Busca palavras de uma sequência horizontal, vertical, ou diagonal em um vetor de caracteres.
  *
  * A função verifica todas as substrings do vetor e busca por palavras
  * normais e invertidas na TRIE, inserindo-as em uma AVL se encontradas.
  *
- * @param vetor Vetor de caracteres representando uma linha.
+ * @param vetor Vetor de caracteres representando uma linha, coluna, ou diagonal.
  * @param tamanho Tamanho do vetor.
  * @param trie Ponteiro para a estrutura TRIE.
  * @param avl Ponteiro para a raiz da AVL.
  */
-void buscar_horizontal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl)
+void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl)
 {
     char substring[tamanho + 1];
 
@@ -116,6 +116,7 @@ void buscar_horizontal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL 
 
         int index = vetor[i] - 'a';
 
+        // Checa em ambos os sentidos todas as possibilidades de palavras
         for (size_t j = i + 1; j < tamanho; j++)
         {
             substring[length++] = vetor[j];
@@ -124,11 +125,12 @@ void buscar_horizontal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL 
             char *substring_invertida = palavra_invertida(substring);
             Palavra p;
 
+            p.linha = i;
+            p.coluna = j;
+
             if (trie_buscar(trie, substring))
             {
                 strcpy(p.palavra, substring);
-                p.linha = i;
-                p.coluna = j;
 
                 (*avl) = avl_inserir_no(*avl, p);
                 break;
@@ -137,102 +139,10 @@ void buscar_horizontal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL 
             if (trie_buscar(trie, substring_invertida))
             {
                 strcpy(p.palavra, substring_invertida);
-                p.linha = i;
-                p.coluna = j;
 
                 (*avl) = avl_inserir_no(*avl, p);
                 break;
             }
-
-            free(substring_invertida);
-        }
-    }
-}
-
-/**
- * @brief Busca palavras verticalmente em um vetor de caracteres.
- *
- * @param vetor Vetor de caracteres representando uma coluna.
- * @param tamanho Tamanho do vetor.
- * @param trie Ponteiro para a estrutura TRIE.
- * @param avl Ponteiro para a raiz da AVL.
- */
-void buscar_vertical(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl)
-{
-    char substring[tamanho + 1];
-
-    for (size_t i = 0; i < tamanho; i++)
-    {
-        size_t length = 0;
-        substring[length++] = vetor[i];
-
-        int index = vetor[i] - 'a';
-
-        for (size_t j = i + 1; j < tamanho; j++)
-        {
-            substring[length++] = vetor[j];
-            substring[length] = '\0';
-
-            char *substring_invertida = palavra_invertida(substring);
-            Palavra p;
-
-            if (trie_buscar(trie, substring))
-            {
-                strcpy(p.palavra, substring);
-
-                (*avl) = avl_inserir_no(*avl, p);
-            }
-
-            if (trie_buscar(trie, substring_invertida))
-            {
-                strcpy(p.palavra, substring_invertida);
-
-                (*avl) = avl_inserir_no(*avl, p);
-            }
-
-            p.linha = i;
-            p.coluna = j;
-
-            free(substring_invertida);
-        }
-    }
-}
-
-void buscar_diagonal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl)
-{
-    char substring[tamanho + 1];
-
-    for (size_t i = 0; i < tamanho; i++)
-    {
-        size_t length = 0;
-        substring[length++] = vetor[i];
-
-        int index = vetor[i] - 'a';
-
-        for (size_t j = i + 1; j < tamanho; j++)
-        {
-            substring[length++] = vetor[j];
-            substring[length] = '\0';
-
-            char *substring_invertida = palavra_invertida(substring);
-            Palavra p;
-
-            if (trie_buscar(trie, substring))
-            {
-                strcpy(p.palavra, substring);
-
-                (*avl) = avl_inserir_no(*avl, p);
-            }
-
-            if (trie_buscar(trie, substring_invertida))
-            {
-                strcpy(p.palavra, substring_invertida);
-
-                (*avl) = avl_inserir_no(*avl, p);
-            }
-
-            p.linha = i;
-            p.coluna = j;
 
             free(substring_invertida);
         }
@@ -255,7 +165,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
     // Busca horizontal nas linhas do tabuleiro
     for (size_t i = 0; i < tabuleiro.altura; i++)
     {
-        buscar_horizontal(tabuleiro.grid[i], tabuleiro.altura, trie, avl);
+        buscar_sequencia(tabuleiro.grid[i], tabuleiro.altura, trie, avl);
     }
 
     // Busca vertical nas colunas do tabuleiro
@@ -268,10 +178,10 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             temp[l] = tabuleiro.grid[l][c];
         }
 
-        buscar_vertical(temp, tabuleiro.largura, trie, avl);
+        buscar_sequencia(temp, tabuleiro.largura, trie, avl);
     }
 
-    // Primeira parte, diagonais secundárias (diagonais secundárias que começam com coluna 0 até 9)
+    // Primeira parte, busca diagonais secundárias da linha 0, das colunas 0 até 9.
     for (size_t coluna = 0; coluna < tabuleiro.largura; coluna++)
     {
         int aux = coluna;
@@ -284,10 +194,10 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux--;
         }
 
-        buscar_diagonal(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
-    // Segunda parte, diagonais secundárias (diagonais secundárias que começam com linha 1 até 9)
+    // Segunda parte, busca diagonais secundárias da coluna 9, das linhas 1 até 9.
     for (size_t linha = 1; linha < tabuleiro.altura; linha++)
     {
         int aux = linha;
@@ -300,10 +210,10 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_diagonal(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
-    // Terceira parte, diagonais primárias (diagonais primárias que começam com coluna 9 até 0)
+    // Terceira parte, busca diagonais principais da linha 0, das colunas 9 até 0.
     for (int coluna = 9; coluna >= 0; --coluna)
     {
         int aux = coluna;
@@ -316,10 +226,10 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_diagonal(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
-    // Quarta parte, diagonais primárias (diagonais primárias que começam com linhas de 1 até 9)
+    // Quarta parte, busca diagonais principais da coluna 0, das linhas 1 até 9.
     for (size_t linha = 1; linha < tabuleiro.altura; linha++)
     {
         int aux = linha;
@@ -332,7 +242,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_diagonal(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
     return 1;
