@@ -1,5 +1,5 @@
 run:
-	gcc *.c -o caca-palavras
+	gcc -std=c11 *.c -o caca-palavras
 	./caca-palavras
 
 # PROGRAM = fly
