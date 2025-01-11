@@ -13,7 +13,8 @@ typedef struct
 Tabuleiro ler_tabuleiro(const char *filename);
 int ler_palavras(const char *filename, No_TRIE *trie);
 void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl, size_t inicio);
-int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro);
+void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro);
+void imprimir_tabuleiro(const Tabuleiro tabuleiro);
 void imprimir_resultados(No_AVL *raiz);
 
 #endif

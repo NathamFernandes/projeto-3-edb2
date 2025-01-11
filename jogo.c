@@ -161,7 +161,7 @@ void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL *
  * @param tabuleiro Estrutura representando o tabuleiro.
  * @return int 1 ao concluir a busca.
  */
-int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
+void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
 {
     // Busca horizontal nas linhas do tabuleiro
     for (size_t i = 0; i < tabuleiro.altura; i++)
@@ -243,10 +243,8 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl, aux);
+        buscar_sequencia(temp, length, trie, avl, linha);
     }
-
-    return 1;
 }
 
 /**
@@ -260,4 +258,14 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
 void imprimir_resultados(No_AVL *raiz)
 {
     avl_imprimir_em_ordem(raiz);
+}
+
+void imprimir_tabuleiro(const Tabuleiro tabuleiro)
+{
+    for (size_t l = 0; l < tabuleiro.altura; l++) {
+        for (size_t c = 0; c < tabuleiro.largura; c++) {
+            printf("%c ", tabuleiro.grid[l][c]);
+        }
+        printf("\n");
+    }
 }
