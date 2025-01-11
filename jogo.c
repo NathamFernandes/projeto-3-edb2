@@ -16,11 +16,9 @@
  */
 Tabuleiro ler_tabuleiro(const char *filename)
 {
-    // Abre o arquivo para leitura
     FILE *arq_entrada = fopen(filename, "r");
     Tabuleiro tabuleiro;
 
-    // Lê as dimensões do tabuleiro
     fscanf(arq_entrada, "%d %d", &tabuleiro.altura, &tabuleiro.largura);
 
     // Aloca memória para o grid do tabuleiro
@@ -41,7 +39,6 @@ Tabuleiro ler_tabuleiro(const char *filename)
         }
     }
 
-    // Fecha o arquivo
     fclose(arq_entrada);
 
     return tabuleiro;
@@ -59,10 +56,9 @@ Tabuleiro ler_tabuleiro(const char *filename)
  */
 int ler_palavras(const char *filename, No_TRIE *trie)
 {
-    // Abre o arquivo para leitura
     FILE *arq_entrada = fopen(filename, "r");
     if (!arq_entrada)
-        return 1; // Retorna erro se o arquivo não for aberto
+        return 1;
 
     char palavra[MAXSTRLEN];
 
@@ -72,7 +68,6 @@ int ler_palavras(const char *filename, No_TRIE *trie)
         trie_inserir(trie, palavra);
     }
 
-    // Fecha o arquivo
     fclose(arq_entrada);
 
     return 0;
@@ -86,19 +81,14 @@ int ler_palavras(const char *filename, No_TRIE *trie)
  */
 static char *palavra_invertida(const char *palavra)
 {
-    // Calcula o tamanho da palavra
     size_t tamanho = strlen(palavra);
-
-    // Aloca memória para a string invertida
     char *invertida = malloc(tamanho + 1 * sizeof(char));
 
-    // Copia os caracteres em ordem inversa
     for (size_t i = 0; i < tamanho; i++)
     {
         invertida[i] = palavra[tamanho - i - 1];
     }
 
-    // Adiciona o terminador nulo
     invertida[tamanho] = '\0';
 
     return invertida;
@@ -125,8 +115,6 @@ void buscar_horizontal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL 
         substring[length++] = vetor[i];
 
         int index = vetor[i] - 'a';
-        // if (trie->filhos[index] == NULL)
-        //     continue;
 
         for (size_t j = i + 1; j < tamanho; j++)
         {
@@ -179,8 +167,6 @@ void buscar_vertical(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **
         substring[length++] = vetor[i];
 
         int index = vetor[i] - 'a';
-        // if (trie->filhos[index] == NULL)
-        //     continue;
 
         for (size_t j = i + 1; j < tamanho; j++)
         {
@@ -222,8 +208,6 @@ void buscar_diagonal(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **
         substring[length++] = vetor[i];
 
         int index = vetor[i] - 'a';
-        // if (trie->filhos[index] == NULL)
-        //     continue;
 
         for (size_t j = i + 1; j < tamanho; j++)
         {
