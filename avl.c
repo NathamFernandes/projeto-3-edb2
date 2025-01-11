@@ -1,6 +1,6 @@
-#include "avl.h"
 #include <stdio.h>
 #include <string.h>
+#include "avl.h"
 
 int avl_obter_altura(No_AVL *no)
 {
@@ -22,8 +22,10 @@ No_AVL *avl_criar_no(const Palavra dado)
 {
     No_AVL *no = (No_AVL *)malloc(sizeof(No_AVL));
     strcpy(no->dado.palavra, dado.palavra);
-    no->dado.linha = dado.linha;
-    no->dado.coluna = dado.coluna;
+    no->dado.x1 = dado.x1;
+    no->dado.y1 = dado.y1;
+    no->dado.x2 = dado.x2;
+    no->dado.y2 = dado.y2;
     no->esquerdo = NULL;
     no->direito = NULL;
     no->altura = 0;
@@ -100,15 +102,13 @@ No_AVL *avl_inserir_no(No_AVL *no, const Palavra dado)
         return avl_rotacao_esquerda(no);
 
     // Caso 3: Esquerda-Direita
-    if (balanceamento > 1 && strcmp(dado.palavra, no->esquerdo->dado.palavra) > 0)
-    {
+    if (balanceamento > 1 && strcmp(dado.palavra, no->esquerdo->dado.palavra) > 0) {
         no->esquerdo = avl_rotacao_esquerda(no->esquerdo);
         return avl_rotacao_direita(no);
     }
 
     // Caso 4: Direita-Esquerda
-    if (balanceamento < -1 && strcmp(dado.palavra, no->direito->dado.palavra) < 0)
-    {
+    if (balanceamento < -1 && strcmp(dado.palavra, no->direito->dado.palavra) < 0) {
         no->direito = avl_rotacao_direita(no->direito);
         return avl_rotacao_esquerda(no);
     }
@@ -217,8 +217,8 @@ void avl_imprimir_em_ordem(No_AVL *raiz)
     {
         avl_imprimir_em_ordem(raiz->esquerdo);
         printf("Palavra: %s\n", raiz->dado.palavra);
-        printf("X: %d\n", raiz->dado.linha);
-        printf("Y: %d\n", raiz->dado.coluna);
+        printf("Inicio -> (%zu, %zu)\n", raiz->dado.x1, raiz->dado.y1);
+        printf("Final -> (%zu, %zu)\n", raiz->dado.x2, raiz->dado.y2);
         printf("\n");
         avl_imprimir_em_ordem(raiz->direito);
     }

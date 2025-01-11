@@ -1,3 +1,11 @@
+PROGRAM = caca-palavras
+
+CC = gcc
+
+C_SOURCES = ./*.c
+
+C_FLAGS = -std=c11 -Wall -pedantic
+
 run:
-	gcc -std=c11 *.c -o caca-palavras
-	./caca-palavras
+	$(CC) $(C_FLAGS) $(C_SOURCES) -o $(PROGRAM)
+	./$(PROGRAM)

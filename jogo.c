@@ -105,7 +105,7 @@ static char *palavra_invertida(const char *palavra)
  * @param trie Ponteiro para a estrutura TRIE.
  * @param avl Ponteiro para a raiz da AVL.
  */
-void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl)
+void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl, size_t inicio)
 {
     char substring[tamanho + 1];
 
@@ -113,8 +113,6 @@ void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL *
     {
         size_t length = 0;
         substring[length++] = vetor[i];
-
-        int index = vetor[i] - 'a';
 
         // Checa em ambos os sentidos todas as possibilidades de palavras
         for (size_t j = i + 1; j < tamanho; j++)
@@ -125,12 +123,15 @@ void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL *
             char *substring_invertida = palavra_invertida(substring);
             Palavra p;
 
-            p.linha = i;
-            p.coluna = j;
-
             if (trie_buscar(trie, substring))
             {
                 strcpy(p.palavra, substring);
+
+                p.x1 = inicio;
+                p.y1 = i;
+
+                p.x2 = inicio;
+                p.y2 = j;
 
                 (*avl) = avl_inserir_no(*avl, p);
                 break;
@@ -165,7 +166,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
     // Busca horizontal nas linhas do tabuleiro
     for (size_t i = 0; i < tabuleiro.altura; i++)
     {
-        buscar_sequencia(tabuleiro.grid[i], tabuleiro.altura, trie, avl);
+        buscar_sequencia(tabuleiro.grid[i], tabuleiro.altura, trie, avl, i);
     }
 
     // Busca vertical nas colunas do tabuleiro
@@ -178,7 +179,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             temp[l] = tabuleiro.grid[l][c];
         }
 
-        buscar_sequencia(temp, tabuleiro.largura, trie, avl);
+        buscar_sequencia(temp, tabuleiro.largura, trie, avl, c);
     }
 
     // Primeira parte, busca diagonais secundárias da linha 0, das colunas 0 até 9.
@@ -194,7 +195,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux--;
         }
 
-        buscar_sequencia(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl, coluna);
     }
 
     // Segunda parte, busca diagonais secundárias da coluna 9, das linhas 1 até 9.
@@ -210,7 +211,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl, linha);
     }
 
     // Terceira parte, busca diagonais principais da linha 0, das colunas 9 até 0.
@@ -226,7 +227,7 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl, coluna);
     }
 
     // Quarta parte, busca diagonais principais da coluna 0, das linhas 1 até 9.
@@ -242,12 +243,20 @@ int buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl);
+        buscar_sequencia(temp, length, trie, avl, aux);
     }
 
     return 1;
 }
 
+/**
+ * @brief Imprime os resultados armazenados na árvore AVL.
+ * 
+ * Esta função chama a função auxiliar `avl_imprimir_em_ordem` para percorrer
+ * e imprimir os elementos da árvore AVL em ordem.
+ * 
+ * @param raiz Ponteiro para o nó raiz da árvore AVL.
+ */
 void imprimir_resultados(No_AVL *raiz)
 {
     avl_imprimir_em_ordem(raiz);

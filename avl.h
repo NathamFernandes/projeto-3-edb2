@@ -8,7 +8,7 @@
 
 typedef struct {
     char palavra[MAXSTRLEN];
-    short linha, coluna;
+    size_t x1, y1, x2, y2;
 } Palavra;
 
 typedef struct No_AVL
