@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <ctype.h>
 #include "jogo.h"
 #include "avl.h"
 #include "trie.h"
@@ -14,34 +16,38 @@
  * @param filename Nome do arquivo de entrada.
  * @return Tabuleiro Estrutura do tabuleiro preenchida com os dados do arquivo.
  */
-Tabuleiro ler_tabuleiro(const char *filename)
+int ler_tabuleiro(const char *filename, Tabuleiro *tabuleiro)
 {
     FILE *arq_entrada = fopen(filename, "r");
-    Tabuleiro tabuleiro;
 
-    fscanf(arq_entrada, "%d %d", &tabuleiro.altura, &tabuleiro.largura);
+    if (!arq_entrada) {
+        fprintf(stdout, "Falha ao buscar o arquivo \"%s\": %s.\n", filename, strerror(errno));
+        return READ_FAIL;
+    }
+
+    fscanf(arq_entrada, "%d %d", &tabuleiro->altura, &tabuleiro->largura);
 
     // Aloca memória para o grid do tabuleiro
-    tabuleiro.grid = malloc(tabuleiro.altura * sizeof(char *));
-    for (size_t i = 0; i < tabuleiro.largura; i++)
+    tabuleiro->grid = malloc(tabuleiro->altura * sizeof(char *));
+    for (size_t i = 0; i < tabuleiro->largura; i++)
     {
-        tabuleiro.grid[i] = malloc(sizeof(char));
+        tabuleiro->grid[i] = malloc(sizeof(char));
     }
 
     // Preenche o grid do tabuleiro com os caracteres do arquivo
-    for (size_t i = 0; i < tabuleiro.altura; i++)
+    for (size_t i = 0; i < tabuleiro->altura; i++)
     {
-        for (size_t j = 0; j < tabuleiro.largura; j++)
+        for (size_t j = 0; j < tabuleiro->largura; j++)
         {
             char ch;
             fscanf(arq_entrada, " %c", &ch);
-            tabuleiro.grid[i][j] = ch;
+            tabuleiro->grid[i][j] = ch;
         }
     }
 
     fclose(arq_entrada);
 
-    return tabuleiro;
+    return READ_OK;
 }
 
 /**
@@ -57,8 +63,10 @@ Tabuleiro ler_tabuleiro(const char *filename)
 int ler_palavras(const char *filename, No_TRIE *trie)
 {
     FILE *arq_entrada = fopen(filename, "r");
-    if (!arq_entrada)
-        return 1;
+    if (!arq_entrada) {
+        fprintf(stdout, "Falha ao buscar o arquivo \"%s\": %s.\n", filename, strerror(errno));
+        return READ_FAIL;
+    }
 
     char palavra[MAXSTRLEN];
 
@@ -70,7 +78,7 @@ int ler_palavras(const char *filename, No_TRIE *trie)
 
     fclose(arq_entrada);
 
-    return 0;
+    return READ_OK;
 }
 
 /**
@@ -260,12 +268,89 @@ void imprimir_resultados(No_AVL *raiz)
     avl_imprimir_em_ordem(raiz);
 }
 
+/**
+ * @brief Imprime o tabuleiro do jogo no formato visual.
+ * 
+ * @param tabuleiro Estrutura contendo o grid do tabuleiro e suas dimensões.
+ */
 void imprimir_tabuleiro(const Tabuleiro tabuleiro)
 {
+    for (size_t i = 0; i < tabuleiro.largura * 2 + 1; i++)
+        printf("-");
+    printf("\n");
+
     for (size_t l = 0; l < tabuleiro.altura; l++) {
+        printf("|");
         for (size_t c = 0; c < tabuleiro.largura; c++) {
-            printf("%c ", tabuleiro.grid[l][c]);
+            char ch = toupper(tabuleiro.grid[l][c]);
+            
+            printf("%c ", ch);
         }
+        printf("\b|");
         printf("\n");
     }
+
+    for (size_t i = 0; i < tabuleiro.largura * 2 + 1; i++)
+        printf("-");
+    printf("\n");
+}
+
+/**
+ * @brief Exibe o banner do jogo na saída padrão.
+ */
+void banner()
+{
+    printf("\n");
+    printf("+-------------------------------------------------------------------+\n");
+    printf("|                                       _                           |\n");
+    printf("|  ___ __ _  ___ __ _       _ __   __ _| | __ ___   ___ __ __ _ ___ |\n");
+    printf("| / __/ _` |/ __/ _` |_____| '_ \\ / _` | |/ _` \\ \\ / / '__/ _` / __||\n");
+    printf("|| (_| (_| | (_| (_| |_____| |_) | (_| | | (_| |\\ V /| | | (_| \\__ \\|\n");
+    printf("| \\___\\__,_|\\___\\__,_|     | .__/ \\__,_|_|\\__,_| \\_/ |_|  \\__,_|___/|\n");
+    printf("|                          |_|                                      |\n");
+    printf("+-------------------------------------------------------------------+\n");
+    printf("\n");
+}
+
+/**
+ * @brief Limpa a tela do console, dependendo do sistema operacional.
+ */
+void limpar_tela() 
+{
+#if defined(_WIN32) || defined(_WIN64)
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
+/**
+ * @brief Aguarda o usuário pressionar a tecla Enter.
+ */
+void enter()
+{
+    getc(stdin);
+    char enter;
+
+    while (enter != '\n') {
+        enter = getchar();
+    }
+}
+
+/**
+ * @brief Libera todos os recursos alocados e encerra o jogo.
+ * 
+ * @param trie Ponteiro para a estrutura TRIE a ser liberada.
+ * @param avl Ponteiro para a árvore AVL a ser liberada.
+ * @param tabuleiro Estrutura contendo o tabuleiro que será liberado.
+ */
+void terminar_jogo(No_TRIE *trie, No_AVL* avl, Tabuleiro tabuleiro)
+{
+    trie_liberar(trie);
+    avl_liberar_arvore(avl);
+
+    for (size_t l = 0; l < tabuleiro.altura; l++)
+        free(tabuleiro.grid[l]);
+
+    free(tabuleiro.grid);
 }

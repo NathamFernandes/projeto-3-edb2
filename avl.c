@@ -223,3 +223,14 @@ void avl_imprimir_em_ordem(No_AVL *raiz)
         avl_imprimir_em_ordem(raiz->direito);
     }
 }
+
+void avl_liberar_arvore(No_AVL *raiz)
+{
+    if (raiz == NULL)
+        return;
+
+    avl_liberar_arvore(raiz->esquerdo);
+    avl_liberar_arvore(raiz->direito);
+
+    free(raiz);
+}
