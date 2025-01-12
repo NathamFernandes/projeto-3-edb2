@@ -10,7 +10,7 @@
 /**
  * @brief Lê um tabuleiro de um arquivo e retorna sua estrutura.
  *
- * O arquivo deve conter as dimensões do tabuleiro na primeira linha (altura e largura),
+ * O arquivo deve conter as dimensões do tabuleiro na primeira linha (altura e largura),una
  * seguidas pelas linhas do tabuleiro contendo caracteres.
  *
  * @param filename Nome do arquivo de entrada.
@@ -25,13 +25,14 @@ int ler_tabuleiro(const char *filename, Tabuleiro *tabuleiro)
         return READ_FAIL;
     }
 
-    fscanf(arq_entrada, "%d %d", &tabuleiro->altura, &tabuleiro->largura);
+    fscanf(arq_entrada, "%zu %zu", &tabuleiro->altura, &tabuleiro->largura);
 
     // Aloca memória para o grid do tabuleiro
-    tabuleiro->grid = malloc(tabuleiro->altura * sizeof(char *));
+    tabuleiro->grid = (Letra**) malloc(tabuleiro->altura * sizeof(Letra *));
+
     for (size_t i = 0; i < tabuleiro->largura; i++)
     {
-        tabuleiro->grid[i] = malloc(sizeof(char));
+        tabuleiro->grid[i] = malloc(tabuleiro->largura * sizeof(Letra));
     }
 
     // Preenche o grid do tabuleiro com os caracteres do arquivo
@@ -41,7 +42,9 @@ int ler_tabuleiro(const char *filename, Tabuleiro *tabuleiro)
         {
             char ch;
             fscanf(arq_entrada, " %c", &ch);
-            tabuleiro->grid[i][j] = ch;
+            tabuleiro->grid[i][j].letra = ch;
+            tabuleiro->grid[i][j].linha = i;
+            tabuleiro->grid[i][j].coluna = j;
         }
     }
 
@@ -113,19 +116,19 @@ static char *palavra_invertida(const char *palavra)
  * @param trie Ponteiro para a estrutura TRIE.
  * @param avl Ponteiro para a raiz da AVL.
  */
-void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl, size_t inicio)
+void buscar_sequencia(const Letra *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl)
 {
     char substring[tamanho + 1];
 
     for (size_t i = 0; i < tamanho; i++)
     {
         size_t length = 0;
-        substring[length++] = vetor[i];
+        substring[length++] = vetor[i].letra;
 
         // Checa em ambos os sentidos todas as possibilidades de palavras
         for (size_t j = i + 1; j < tamanho; j++)
         {
-            substring[length++] = vetor[j];
+            substring[length++] = vetor[j].letra;
             substring[length] = '\0';
 
             char *substring_invertida = palavra_invertida(substring);
@@ -135,11 +138,11 @@ void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL *
             {
                 strcpy(p.palavra, substring);
 
-                p.x1 = inicio;
-                p.y1 = i;
+                p.x1 = vetor[i].linha;
+                p.y1 = vetor[i].coluna;
 
-                p.x2 = inicio;
-                p.y2 = j;
+                p.x2 = vetor[j].linha;
+                p.y2 = vetor[j].coluna;
 
                 (*avl) = avl_inserir_no(*avl, p);
                 break;
@@ -148,6 +151,12 @@ void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL *
             if (trie_buscar(trie, substring_invertida))
             {
                 strcpy(p.palavra, substring_invertida);
+
+                p.x1 = vetor[j].linha;
+                p.y1 = vetor[j].coluna;
+
+                p.x2 = vetor[i].linha;
+                p.y2 = vetor[i].coluna;
 
                 (*avl) = avl_inserir_no(*avl, p);
                 break;
@@ -167,27 +176,43 @@ void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL *
  * @param trie Ponteiro para a estrutura TRIE.
  * @param avl Ponteiro para a raiz da AVL.
  * @param tabuleiro Estrutura representando o tabuleiro.
- * @return int 1 ao concluir a busca.
  */
 void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
 {
     // Busca horizontal nas linhas do tabuleiro
     for (size_t i = 0; i < tabuleiro.altura; i++)
     {
-        buscar_sequencia(tabuleiro.grid[i], tabuleiro.altura, trie, avl, i);
+        Letra letras[tabuleiro.altura];
+        size_t length = 0;
+
+        for (size_t j = 0; j < tabuleiro.largura; j++) {
+            Letra l;
+            l.letra = tabuleiro.grid[i][j].letra;
+            l.linha = tabuleiro.grid[i][j].linha;
+            l.coluna = tabuleiro.grid[i][j].coluna;
+
+            letras[length++] = l;
+        }
+
+        buscar_sequencia(letras, tabuleiro.altura, trie, avl);
     }
 
     // Busca vertical nas colunas do tabuleiro
     for (size_t c = 0; c < tabuleiro.largura; c++)
     {
-        char temp[10];
+        Letra temp[tabuleiro.altura];
 
         for (size_t l = 0; l < tabuleiro.altura; l++)
         {
-            temp[l] = tabuleiro.grid[l][c];
+            Letra letra;
+            letra.letra = tabuleiro.grid[l][c].letra;
+            letra.linha = tabuleiro.grid[l][c].linha;
+            letra.coluna = tabuleiro.grid[l][c].coluna;
+
+            temp[l] = letra;
         }
 
-        buscar_sequencia(temp, tabuleiro.largura, trie, avl, c);
+        buscar_sequencia(temp, tabuleiro.largura, trie, avl);
     }
 
     // Primeira parte, busca diagonais secundárias da linha 0, das colunas 0 até 9.
@@ -195,15 +220,20 @@ void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
     {
         int aux = coluna;
         int length = 0;
-        char temp[10];
+        Letra temp[tabuleiro.largura];
 
         for (size_t linha = 0; linha <= coluna; linha++)
         {
-            temp[length++] = tabuleiro.grid[linha][aux];
+            Letra l;
+            l.letra = tabuleiro.grid[linha][aux].letra;
+            l.linha = tabuleiro.grid[linha][aux].linha;
+            l.coluna = tabuleiro.grid[linha][aux].coluna;
+
+            temp[length++] = l;
             aux--;
         }
 
-        buscar_sequencia(temp, length, trie, avl, coluna);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
     // Segunda parte, busca diagonais secundárias da coluna 9, das linhas 1 até 9.
@@ -211,15 +241,20 @@ void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
     {
         int aux = linha;
         int length = 0;
-        char temp[10];
+        Letra temp[tabuleiro.largura];
 
         for (size_t coluna = 9; aux <= 9; coluna--)
         {
-            temp[length++] = tabuleiro.grid[aux][coluna];
+            Letra l;
+            l.letra = tabuleiro.grid[aux][coluna].letra;
+            l.linha = tabuleiro.grid[aux][coluna].linha;
+            l.coluna = tabuleiro.grid[aux][coluna].coluna;
+
+            temp[length++] = l;
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl, linha);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
     // Terceira parte, busca diagonais principais da linha 0, das colunas 9 até 0.
@@ -227,15 +262,20 @@ void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
     {
         int aux = coluna;
         int length = 0;
-        char temp[10];
+        Letra temp[tabuleiro.altura];
 
         for (size_t linha = 0; linha < 10 - coluna; linha++)
         {
-            temp[length++] = tabuleiro.grid[linha][aux];
+            Letra l;
+            l.letra = tabuleiro.grid[linha][aux].letra;
+            l.linha = tabuleiro.grid[linha][aux].linha;
+            l.coluna = tabuleiro.grid[linha][aux].coluna;
+
+            temp[length++] = l;
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl, coluna);
+        buscar_sequencia(temp, length, trie, avl);
     }
 
     // Quarta parte, busca diagonais principais da coluna 0, das linhas 1 até 9.
@@ -243,15 +283,20 @@ void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro)
     {
         int aux = linha;
         int length = 0;
-        char temp[10];
+        Letra temp[tabuleiro.largura];
 
-        for (size_t coluna = 0; coluna < 10 - linha; coluna++)
+        for (size_t coluna = 0; coluna < tabuleiro.largura - linha; coluna++)
         {
-            temp[length++] = tabuleiro.grid[aux][coluna];
+            Letra l;
+            l.letra = tabuleiro.grid[aux][coluna].letra;
+            l.linha = tabuleiro.grid[aux][coluna].linha;
+            l.coluna = tabuleiro.grid[aux][coluna].coluna;
+
+            temp[length++] = l;
             aux++;
         }
 
-        buscar_sequencia(temp, length, trie, avl, linha);
+        buscar_sequencia(temp, length, trie, avl);
     }
 }
 
@@ -282,7 +327,7 @@ void imprimir_tabuleiro(const Tabuleiro tabuleiro)
     for (size_t l = 0; l < tabuleiro.altura; l++) {
         printf("|");
         for (size_t c = 0; c < tabuleiro.largura; c++) {
-            char ch = toupper(tabuleiro.grid[l][c]);
+            char ch = toupper(tabuleiro.grid[l][c].letra);
             
             printf("%c ", ch);
         }

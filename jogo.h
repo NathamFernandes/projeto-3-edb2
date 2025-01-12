@@ -7,12 +7,19 @@
 #define READ_OK 0
 #define READ_FAIL 1
 
+// Representa uma letra no tabuleiro do jogo.
+typedef struct {
+    char letra;       // Letra armazenada.
+    size_t linha;     // Linha onde a letra está localizada.
+    size_t coluna;    // Coluna onde a letra está localizada.
+} Letra;
+
 // Estrutura que representa o tabuleiro do jogo.
 typedef struct
 {
-    char **grid;      // Matriz de caracteres representando o tabuleiro.
-    int altura;       // Altura do tabuleiro.
-    int largura;      // Largura do tabuleiro.
+    Letra **grid;        // Matriz de caracteres representando o tabuleiro.
+    size_t altura;       // Altura do tabuleiro.
+    size_t largura;      // Largura do tabuleiro.
 } 
 Tabuleiro;
 
@@ -23,7 +30,7 @@ int ler_tabuleiro(const char *filename, Tabuleiro *tabuleiro);
 int ler_palavras(const char *filename, No_TRIE *trie);
 
 // Busca sequências de caracteres no vetor e insere palavras válidas na AVL.
-void buscar_sequencia(const char *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl, size_t inicio);
+void buscar_sequencia(const Letra *vetor, size_t tamanho, No_TRIE *trie, No_AVL **avl);
 
 // Busca palavras no tabuleiro e insere na AVL as encontradas na TRIE.
 void buscar_palavras(No_TRIE *trie, No_AVL **avl, Tabuleiro tabuleiro);
