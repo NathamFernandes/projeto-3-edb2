@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <stdio.h>
 #include "avl.h"
 #include "trie.h"
