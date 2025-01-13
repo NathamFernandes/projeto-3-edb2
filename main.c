@@ -50,6 +50,7 @@ int main(int argc, char* argv[])
             case 1:
                 limpar_tela();
                 imprimir_tabuleiro(tab);
+                printf("\n\n>>> Pressione Enter para voltar...\n");
                 enter();
                 limpar_tela();
                 break;
@@ -57,12 +58,14 @@ int main(int argc, char* argv[])
                 limpar_tela();
                 buscar_palavras(trie, &avl, tab);
                 printf("Busca realizada!\n");
+                printf("\n\n>>> Pressione Enter para voltar...\n");
                 enter();
                 limpar_tela();
                 break;
             case 3:
                 limpar_tela();
                 imprimir_resultados(avl);
+                printf("\n\n>>> Pressione Enter para voltar...\n");
                 enter();
                 limpar_tela();
                 break;
