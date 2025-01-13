@@ -6,10 +6,10 @@ Este projeto tem como finalidade a implementação da estrutura de dados Árvore
 ### Usando Makefile
 ```
 make
-./caca-palavras
+./caca-palavras -p palavras.txt -t tabuleiro.txt
 ```
 ### Compilando manualmente
 ```
 gcc -std=c11 *.c -o caca-palavras
-./caca-palavras
+./caca-palavras -p palavras.txt -t tabuleiro.txt
 ```
